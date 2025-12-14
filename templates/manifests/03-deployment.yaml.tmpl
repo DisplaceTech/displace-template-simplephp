@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.ProjectName}}
+  namespace: {{.Namespace}}
+  labels:
+    app.kubernetes.io/name: {{.ProjectName}}
+    app.kubernetes.io/instance: {{.ProjectName}}
+    app.kubernetes.io/component: app
+    app.kubernetes.io/managed-by: displace
+spec:
+  replicas: {{.Replicas}}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{.ProjectName}}
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{.ProjectName}}
+        app.kubernetes.io/instance: {{.ProjectName}}
+        app.kubernetes.io/component: app
+    spec:
+      containers:
+      - name: php
+        image: {{.ProjectName}}:latest
+        ports:
+        - containerPort: 80
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: {{.MemoryLimit}}
+            cpu: {{.CPULimit}}
+        volumeMounts:
+        - name: content
+          mountPath: /var/www/html
+      volumes:
+      - name: content
+        persistentVolumeClaim:
+          claimName: {{.ProjectName}}-content

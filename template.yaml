@@ -1,0 +1,228 @@
+name: simplephp
+version: "1.0.0"
+description: Simple PHP website deployment for Kubernetes (no framework, no database)
+author: Displace Technologies
+license: MIT
+homepage: https://github.com/DisplaceTech/displace-template-simplephp
+repository: https://github.com/DisplaceTech/displace-template-simplephp
+
+# Template configuration
+template:
+  type: kubernetes
+  engine: go-template
+
+  # Required variables
+  variables:
+    - name: ProjectName
+      description: "Name of the PHP project"
+      required: true
+      type: string
+      pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+      example: "my-php-site"
+
+    - name: Namespace
+      description: "Kubernetes namespace for deployment"
+      required: true
+      type: string
+      default: "{{.ProjectName}}"
+      pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+
+    - name: Domain
+      description: "Domain name for the PHP site"
+      required: true
+      type: string
+      pattern: "^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$"
+      example: "app.example.com"
+
+  # Optional variables with defaults
+  optional_variables:
+    - name: ProjectDisplayName
+      description: "Human-readable project display name"
+      type: string
+      default: "{{.ProjectName}}"
+      example: "My PHP Site"
+
+    - name: PHPVersion
+      description: "PHP version"
+      type: string
+      default: "8.3"
+      pattern: "^8\\.[0-9]+$"
+      example: "8.2"
+
+    - name: Replicas
+      description: "Number of pod replicas"
+      type: integer
+      default: 2
+      minimum: 1
+      maximum: 10
+
+    - name: StorageSize
+      description: "Size of content storage PVC"
+      type: string
+      default: "5Gi"
+      pattern: "^[0-9]+[KMGT]i?$"
+      example: "10Gi"
+
+    - name: StorageClass
+      description: "Kubernetes storage class"
+      type: string
+      default: "standard"
+      example: "ssd"
+
+    - name: IngressClass
+      description: "Ingress controller class"
+      type: string
+      default: "nginx"
+      example: "traefik"
+
+    - name: CertIssuer
+      description: "Cert-manager cluster issuer"
+      type: string
+      default: "letsencrypt-prod"
+      example: "letsencrypt-staging"
+
+    - name: MemoryLimit
+      description: "Container memory limit"
+      type: string
+      default: "256Mi"
+      pattern: "^[0-9]+[KMGT]i?$"
+      example: "512Mi"
+
+    - name: CPULimit
+      description: "Container CPU limit"
+      type: string
+      default: "200m"
+      pattern: "^[0-9]+m?$"
+      example: "500m"
+
+    - name: UploadMaxSize
+      description: "Maximum upload file size"
+      type: string
+      default: "64M"
+      example: "128M"
+
+# Template file mappings
+files:
+  - source: "templates/.gitignore.tmpl"
+    destination: ".gitignore"
+
+  - source: "templates/.credentials.tmpl"
+    destination: ".credentials"
+    permissions: "0600"
+
+  - source: "templates/Makefile.tmpl"
+    destination: "Makefile"
+
+  - source: "templates/README.md.tmpl"
+    destination: "README.md"
+
+  - source: "templates/Dockerfile.tmpl"
+    destination: "Dockerfile"
+
+  - source: "templates/docker-compose.yaml.tmpl"
+    destination: "docker-compose.yaml"
+
+  - source: "templates/nginx.conf.tmpl"
+    destination: "docker/nginx.conf"
+
+  - source: "templates/php.ini.tmpl"
+    destination: "docker/php.ini"
+
+  - source: "templates/supervisord.conf.tmpl"
+    destination: "docker/supervisord.conf"
+
+  - source: "templates/manifests/01-namespace.yaml.tmpl"
+    destination: "manifests/01-namespace.yaml"
+
+  - source: "templates/manifests/02-content-pvc.yaml.tmpl"
+    destination: "manifests/02-content-pvc.yaml"
+
+  - source: "templates/manifests/03-deployment.yaml.tmpl"
+    destination: "manifests/03-deployment.yaml"
+
+  - source: "templates/manifests/04-service.yaml.tmpl"
+    destination: "manifests/04-service.yaml"
+
+  - source: "templates/manifests/05-ingress.yaml.tmpl"
+    destination: "manifests/05-ingress.yaml"
+
+# Docker images used in this template
+images:
+  php:
+    repository: "php"
+    tag: "8.3-fpm-alpine"
+
+  nginx:
+    repository: "nginx"
+    tag: "alpine"
+
+# Template features and capabilities
+features:
+  - kubernetes
+  - php
+  - nginx
+  - persistent-storage
+  - https
+  - content-sync
+  - no-database
+
+categories:
+  - web
+  - php
+  - kubernetes
+
+tags:
+  - php
+  - nginx
+  - kubernetes
+  - simple
+  - https
+  - pvc
+
+# System requirements
+requirements:
+  kubernetes: ">=1.20"
+  docker: ">=20.10"
+  tools:
+    - kubectl
+    - docker
+  optional_tools:
+    - displace
+
+# Template structure validation
+structure:
+  templates_dir: "templates"
+  content_dir: "public"
+
+  required_files:
+    - "templates/Makefile.tmpl"
+    - "templates/README.md.tmpl"
+    - "templates/Dockerfile.tmpl"
+    - "templates/manifests/01-namespace.yaml.tmpl"
+    - "templates/manifests/03-deployment.yaml.tmpl"
+    - "public/index.php"
+
+# Post-generation instructions
+post_generation:
+  message: |
+    Simple PHP project created successfully!
+
+    Next steps:
+    1. Add your PHP files to the public/ directory
+    2. Build the Docker image: make build
+    3. Deploy to Kubernetes: make deploy
+    4. Access locally: make port-forward (then visit http://localhost:8080)
+
+    For content updates without rebuild: make sync-content
+
+    For detailed documentation, see README.md
+
+  commands:
+    - description: "Build PHP Docker image"
+      command: "make build"
+    - description: "Deploy to Kubernetes"
+      command: "make deploy"
+    - description: "Sync content to running pods"
+      command: "make sync-content"
+    - description: "Access locally"
+      command: "make port-forward"

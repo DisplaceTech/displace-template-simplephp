@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{.ProjectName}}
+  namespace: {{.Namespace}}
+  labels:
+    app.kubernetes.io/name: {{.ProjectName}}
+    app.kubernetes.io/instance: {{.ProjectName}}
+    app.kubernetes.io/component: app
+    app.kubernetes.io/managed-by: displace
+  annotations:
+    cert-manager.io/cluster-issuer: {{.CertIssuer}}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: {{.UploadMaxSize}}
+spec:
+  ingressClassName: {{.IngressClass}}
+  tls:
+  - hosts:
+    - {{.Domain}}
+    secretName: {{.ProjectName}}-tls
+  rules:
+  - host: {{.Domain}}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{.ProjectName}}
+            port:
+              number: 80

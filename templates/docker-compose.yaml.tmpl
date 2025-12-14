@@ -1,0 +1,22 @@
+# {{.ProjectName}} Local Development
+# Use: docker-compose up -d
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/var/www/html
+    environment:
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+    networks:
+      - {{.ProjectName}}-network
+
+networks:
+  {{.ProjectName}}-network:
+    driver: bridge

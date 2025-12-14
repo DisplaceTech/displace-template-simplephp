@@ -1,0 +1,43 @@
+; Simple PHP production configuration
+
+[PHP]
+; Error handling
+display_errors = Off
+display_startup_errors = Off
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+log_errors = On
+error_log = /dev/stderr
+
+; Resource Limits
+memory_limit = 128M
+max_execution_time = 30
+max_input_time = 30
+post_max_size = {{.UploadMaxSize}}
+upload_max_filesize = {{.UploadMaxSize}}
+max_file_uploads = 20
+
+; Session
+session.gc_maxlifetime = 1440
+session.cookie_httponly = 1
+session.cookie_secure = 1
+
+; OPcache
+opcache.enable = 1
+opcache.enable_cli = 0
+opcache.memory_consumption = 64
+opcache.interned_strings_buffer = 8
+opcache.max_accelerated_files = 4000
+opcache.validate_timestamps = 0
+opcache.save_comments = 0
+
+; Security
+expose_php = Off
+allow_url_fopen = Off
+allow_url_include = Off
+
+; Date
+date.timezone = UTC
+
+; Realpath cache
+realpath_cache_size = 2048K
+realpath_cache_ttl = 600
